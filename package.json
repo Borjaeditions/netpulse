@@ -1,0 +1,19 @@
+{
+  "name": "netpulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source internet speed monitoring dashboard",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@netpulse/api",
+    "build:api": "npm run build --workspace=@netpulse/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

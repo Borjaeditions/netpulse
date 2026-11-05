@@ -3,7 +3,10 @@ import { EventEmitter } from "node:events";
 export type SpeedTestEvent =
   | "speedtest.started"
   | "speedtest.completed"
-  | "speedtest.failed";
+  | "speedtest.failed"
+  | "schedule.completed"
+  | "schedule.failed"
+  | "schedule.updated";
 
 export interface NetPulseEvent {
   type: SpeedTestEvent;

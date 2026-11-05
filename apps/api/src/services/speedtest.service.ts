@@ -158,27 +158,42 @@ export async function runSpeedTest(): Promise<SpeedTestResult> {
 
   running = true;
 
+  publishEvent("speedtest.started", {
+    serverId: SERVER_ID,
+  });
+
   try {
     const output = await executeLibreSpeed();
     const data = validateResult(JSON.parse(output));
 
     const result: SpeedTestResult = {
-    timestamp: data.timestamp,
-    serverId: SERVER_ID,
-    serverName: data.server.name,
-    serverUrl: data.server.url,
-    downloadMbps: data.download,
-    uploadMbps: data.upload,
-    pingMs: data.ping,
-    jitterMs: data.jitter,
-    bytesSent: data.bytes_sent,
-    bytesReceived: data.bytes_received,
+      timestamp: data.timestamp,
+      serverId: SERVER_ID,
+      serverName: data.server.name,
+      serverUrl: data.server.url,
+      downloadMbps: data.download,
+      uploadMbps: data.upload,
+      pingMs: data.ping,
+      jitterMs: data.jitter,
+      bytesSent: data.bytes_sent,
+      bytesReceived: data.bytes_received,
     };
 
-    saveSpeedTest(result);
+    // Primero almacenamos la medición en SQLite
+    const id = saveSpeedTest(result);
+
+    // Después notificamos a los clientes conectados
+    publishEvent("speedtest.completed", {
+      id,
+      ...result,
+    });
 
     return result;
   } catch (error) {
+    publishEvent("speedtest.failed", {
+      message: "No fue posible completar la medición",
+    });
+
     if (error instanceof SpeedTestError) {
       throw error;
     }

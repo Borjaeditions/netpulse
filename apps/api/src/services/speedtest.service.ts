@@ -1,5 +1,5 @@
-
 import { spawn } from "node:child_process";
+import { saveSpeedTest } from "../database/speedtest.repository.js";
 
 const TIMEOUT_MS = 90_000;
 const SERVER_ID = "93"; // Chicago, Sharktech
@@ -161,18 +161,22 @@ export async function runSpeedTest(): Promise<SpeedTestResult> {
     const output = await executeLibreSpeed();
     const data = validateResult(JSON.parse(output));
 
-    return {
-      timestamp: data.timestamp,
-      serverId: SERVER_ID,
-      serverName: data.server.name,
-      serverUrl: data.server.url,
-      downloadMbps: data.download,
-      uploadMbps: data.upload,
-      pingMs: data.ping,
-      jitterMs: data.jitter,
-      bytesSent: data.bytes_sent,
-      bytesReceived: data.bytes_received,
+    const result: SpeedTestResult = {
+    timestamp: data.timestamp,
+    serverId: SERVER_ID,
+    serverName: data.server.name,
+    serverUrl: data.server.url,
+    downloadMbps: data.download,
+    uploadMbps: data.upload,
+    pingMs: data.ping,
+    jitterMs: data.jitter,
+    bytesSent: data.bytes_sent,
+    bytesReceived: data.bytes_received,
     };
+
+    saveSpeedTest(result);
+
+    return result;
   } catch (error) {
     if (error instanceof SpeedTestError) {
       throw error;

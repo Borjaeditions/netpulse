@@ -38,6 +38,9 @@ coverage/
 
 # Datos persistentes
 data/
+*.db
+*.db-shm
+*.db-wal
 storage/
 backups/
 

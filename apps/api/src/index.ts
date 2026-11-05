@@ -1,6 +1,7 @@
-
+import "./database/sqlite.js";
 import Fastify from "fastify";
 import { speedTestRoutes } from "./routes/speedtest.routes.js";
+import { historyRoutes } from "./routes/history.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -13,6 +14,7 @@ app.get("/api/health", async () => ({
 }));
 
 app.register(speedTestRoutes);
+app.register(historyRoutes);
 
 const port = Number(process.env.PORT ?? 3100);
 

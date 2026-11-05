@@ -16,6 +16,7 @@ services:
 
     ports:
       - "192.168.2.20:3100:3100"
+      - "100.102.57.111:3100:3100"
 
     restart: unless-stopped
 

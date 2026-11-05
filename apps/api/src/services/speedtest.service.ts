@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { saveSpeedTest } from "../database/speedtest.repository.js";
+import { publishEvent } from "./events.service.js";
 
 const TIMEOUT_MS = 90_000;
 const SERVER_ID = "93"; // Chicago, Sharktech

@@ -54,6 +54,44 @@ export function getLatestSpeedTest() {
     LIMIT 1
   `).get() ?? null;
 }
+
+export function getSpeedTestsPage(
+  page: number,
+  pageSize: number,
+) {
+  const totalRow = db
+    .prepare("SELECT COUNT(*) AS total FROM speed_tests")
+    .get() as { total: number };
+
+  const total = Number(totalRow.total);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const safePage = Math.min(page, totalPages);
+  const offset = (safePage - 1) * pageSize;
+
+  const results = db.prepare(`
+    SELECT *
+    FROM speed_tests
+    ORDER BY timestamp DESC, id DESC
+    LIMIT ? OFFSET ?
+  `).all(pageSize, offset);
+
+  return {
+    results,
+    pagination: {
+      page: safePage,
+      pageSize,
+      total,
+      totalPages,
+      hasNextPage: safePage < totalPages,
+      hasPreviousPage: safePage > 1,
+    },
+  };
+}
+
+/**
+ * Elimina una medición por su identificador.
+ */
 export function deleteSpeedTest(id: number): boolean {
   const result = db
     .prepare("DELETE FROM speed_tests WHERE id = ?")
@@ -62,16 +100,23 @@ export function deleteSpeedTest(id: number): boolean {
   return result.changes > 0;
 }
 
+/**
+ * Elimina las mediciones anteriores a una fecha.
+ */
 export function deleteSpeedTestsBefore(before: string): number {
   const result = db
-    .prepare(
-      "DELETE FROM speed_tests WHERE julianday(timestamp) < julianday(?)",
-    )
+    .prepare(`
+      DELETE FROM speed_tests
+      WHERE julianday(timestamp) < julianday(?)
+    `)
     .run(before);
 
   return Number(result.changes);
 }
 
+/**
+ * Elimina todas las mediciones almacenadas.
+ */
 export function deleteAllSpeedTests(): number {
   const result = db
     .prepare("DELETE FROM speed_tests")

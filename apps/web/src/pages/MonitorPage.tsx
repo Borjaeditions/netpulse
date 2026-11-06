@@ -81,7 +81,6 @@ export default function MonitorPage({ refreshKey }: Props) {
           <h1>Monitoreo</h1>
           <p>Historial de velocidad de tu conexión a Internet</p>
         </div>
-        <span className="page-tag">Dell PowerEdge R630</span>
       </div>
 
       <div className="panel chart-panel">

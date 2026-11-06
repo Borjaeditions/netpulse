@@ -4,10 +4,12 @@ import type { FastifyInstance } from "fastify";
 import {
   getLatestSpeedTest,
   getSpeedTests,
+  getSpeedTestsPage,
   deleteSpeedTest,
   deleteSpeedTestsBefore,
   deleteAllSpeedTests,
 } from "../database/speedtest.repository.js";
+
 
 export async function historyRoutes(app: FastifyInstance) {
   // ==========================================
@@ -52,6 +54,43 @@ export async function historyRoutes(app: FastifyInstance) {
       result: getLatestSpeedTest(),
     };
   });
+
+  
+  app.get<{
+    Querystring: {
+      page?: number;
+      pageSize?: number;
+    };
+  }>(
+    "/api/speedtests/page",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            page: {
+              type: "integer",
+              minimum: 1,
+              default: 1,
+            },
+            pageSize: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 10,
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
+    async (request) => {
+      const { page = 1, pageSize = 10 } = request.query;
+
+      return getSpeedTestsPage(page, pageSize);
+    },
+  );
+
 
   // ==========================================
   // Eliminar una medición por ID

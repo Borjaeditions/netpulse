@@ -11,6 +11,7 @@ import {
   getSpeedTests,
   type SpeedTestResult,
 } from "../services/api";
+import HistoryTable from "../components/HistoryTable";
 
 type Range = "24h" | "7d" | "30d" | "all";
 
@@ -25,6 +26,7 @@ export default function MonitorPage({ refreshKey }: Props) {
   const [showUpload, setShowUpload] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +52,7 @@ export default function MonitorPage({ refreshKey }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, historyRefreshKey]);
 
   const filtered = useMemo(() => {
     const now = Date.now();
@@ -199,6 +201,12 @@ export default function MonitorPage({ refreshKey }: Props) {
           {latest.serverName}
         </div>
       )}
+      <HistoryTable
+        results={results}
+        onDeleted={async () => {
+          setHistoryRefreshKey((value) => value + 1);
+        }}
+      />
     </section>
   );
 }

@@ -203,3 +203,85 @@ export async function getScheduleExecutions(limit = 20): Promise<ScheduleExecuti
   );
   return body.results;
 }
+
+/**
+ * NetPulse - Eliminación del historial
+ */
+
+interface DeleteSpeedTestsResponse {
+  success: boolean;
+  deleted: number;
+}
+
+async function deleteSpeedTestsRequest(
+  url: string,
+  headers?: Record<string, string>,
+): Promise<DeleteSpeedTestsResponse> {
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers,
+  });
+
+  if (!response.ok) {
+    const body: { error?: string; message?: string } =
+      await response.json().catch(() => ({}));
+
+    throw new Error(
+      body.message ??
+        body.error ??
+        `No fue posible eliminar los registros (${response.status})`,
+    );
+  }
+
+  return response.json() as Promise<DeleteSpeedTestsResponse>;
+}
+
+/**
+ * Elimina una medición mediante su ID.
+ */
+export async function deleteSpeedTest(
+  id: number,
+): Promise<DeleteSpeedTestsResponse> {
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error("ID de medición inválido");
+  }
+
+  return deleteSpeedTestsRequest(
+    `/api/speedtests/${id}`,
+  );
+}
+
+/**
+ * Elimina las mediciones anteriores a una fecha.
+ */
+export async function deleteSpeedTestsBefore(
+  before: Date,
+): Promise<DeleteSpeedTestsResponse> {
+  if (Number.isNaN(before.getTime())) {
+    throw new Error("Fecha inválida");
+  }
+
+  const timestamp = encodeURIComponent(
+    before.toISOString(),
+  );
+
+  return deleteSpeedTestsRequest(
+    `/api/speedtests?before=${timestamp}`,
+  );
+}
+
+/**
+ * Elimina todas las mediciones almacenadas.
+ *
+ * El backend requiere el encabezado de
+ * confirmación X-Confirm-Delete.
+ */
+export async function deleteAllSpeedTests():
+  Promise<DeleteSpeedTestsResponse> {
+  return deleteSpeedTestsRequest(
+    "/api/speedtests/all",
+    {
+      "X-Confirm-Delete": "DELETE_ALL",
+    },
+  );
+}

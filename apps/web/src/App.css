@@ -962,3 +962,213 @@
     transition: none;
   }
 }
+
+/* ==========================================
+   NetPulse - Historial de mediciones
+   ========================================== */
+
+.history-panel {
+  margin-top: 28px;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+}
+
+.history-header h2 {
+  margin: 0 0 7px;
+  font-size: 18px;
+}
+
+.history-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.history-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 15px;
+  border: 1px solid #ef444455;
+  border-radius: 10px;
+  background: transparent;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.history-danger-button:hover:not(:disabled) {
+  background: #ef444415;
+}
+
+.history-danger-button.solid {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.history-danger-button.solid:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.history-danger-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Tabla */
+
+.history-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.history-table th {
+  padding: 15px 20px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.history-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-table td small {
+  color: var(--muted);
+}
+
+.history-table tbody tr:hover {
+  background: var(--surface-alt);
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.history-table td:last-child {
+  text-align: right;
+}
+
+.history-table .icon-action {
+  margin-left: auto;
+}
+
+.history-empty {
+  padding: 45px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Ventana de confirmación */
+
+.history-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #00000085;
+  backdrop-filter: blur(4px);
+}
+
+.history-modal {
+  width: 100%;
+  max-width: 440px;
+  padding: 28px;
+  box-shadow: 0 20px 60px #00000035;
+}
+
+.history-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: #ef444415;
+  color: #ef4444;
+}
+
+.history-modal h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.history-modal > p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.history-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+@media (max-width: 750px) {
+  .history-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .history-actions {
+    width: 100%;
+  }
+
+  .history-actions button {
+    flex: 1;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 13px 15px;
+  }
+
+  .history-modal {
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .history-danger-button {
+    transition: none;
+  }
+}

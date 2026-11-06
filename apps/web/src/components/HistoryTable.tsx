@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Trash2, CalendarDays, AlertTriangle } from "lucide-react";
+import { useState, useState } from "react";
+import { Trash2, CalendarDays, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   deleteSpeedTest,
@@ -29,8 +29,36 @@ export default function HistoryTable({
   const [confirmation, setConfirmation] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Ordenar del más reciente al más antiguo.
   const ordered = [...results].reverse();
+
+  // Calcular el número de páginas.
+  const totalPages = Math.max(
+    1,
+    Math.ceil(ordered.length / PAGE_SIZE),
+  );
+
+  // Evitar páginas inexistentes después de borrar registros.
+  const safePage = Math.min(currentPage, totalPages);
+
+  // Obtener únicamente los registros de la página actual.
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+
+  const paginatedResults = ordered.slice(
+    startIndex,
+    startIndex + PAGE_SIZE,
+  );
+
+  // Mantener la página dentro del rango válido.
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   async function confirmDelete() {
     if (!action || deleting) return;
@@ -143,7 +171,7 @@ export default function HistoryTable({
             </thead>
 
             <tbody>
-              {ordered.map((item) => (
+              {paginatedResults.map((item) => (
                 <tr key={item.id ?? item.timestamp}>
                   <td>
                     {new Date(
@@ -197,6 +225,49 @@ export default function HistoryTable({
           </table>
         </div>
       )}
+      
+      {ordered.length > 0 && (
+        <div className="history-pagination">
+          <span className="history-pagination-info">
+            Mostrando {startIndex + 1}–
+            {Math.min(startIndex + PAGE_SIZE, ordered.length)}
+            {" "}de {ordered.length} registros
+          </span>
+
+          <div className="history-pagination-controls">
+            <button
+              className="history-page-button"
+              onClick={() =>
+                setCurrentPage((page) => Math.max(1, page - 1))
+              }
+              disabled={safePage === 1}
+              aria-label="Página anterior"
+              title="Página anterior"
+            >
+              <ChevronLeft size={17} />
+            </button>
+
+            <span className="history-page-indicator">
+              Página {safePage} de {totalPages}
+            </span>
+
+            <button
+              className="history-page-button"
+              onClick={() =>
+                setCurrentPage((page) =>
+                  Math.min(totalPages, page + 1),
+                )
+              }
+              disabled={safePage === totalPages}
+              aria-label="Página siguiente"
+              title="Página siguiente"
+            >
+              <ChevronRight size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {action && (
         <div className="history-modal-backdrop">

@@ -285,3 +285,34 @@ export async function deleteAllSpeedTests():
     },
   );
 }
+
+export interface SpeedTestsPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface SpeedTestsPage {
+  results: SpeedTestResult[];
+  pagination: SpeedTestsPagination;
+}
+
+export async function getSpeedTestsPage(
+  page = 1,
+  pageSize = 10,
+): Promise<SpeedTestsPage> {
+  const body = await requestJson<{
+    results: SpeedTestRow[];
+    pagination: SpeedTestsPagination;
+  }>(
+    `/api/speedtests/page?page=${page}&pageSize=${pageSize}`,
+  );
+
+  return {
+    results: body.results.map(normalizeSpeedTest),
+    pagination: body.pagination,
+  };
+}

@@ -200,12 +200,12 @@ export default function MonitorPage({ refreshKey }: Props) {
           {latest.serverName}
         </div>
       )}
-      <HistoryTable
-        results={results}
-        onDeleted={async () => {
-          setHistoryRefreshKey((value) => value + 1);
-        }}
-      />
+          <HistoryTable
+      refreshKey={refreshKey}
+      onDeleted={async () => {
+        setHistoryRefreshKey((value) => value + 1);
+      }}
+    />
     </section>
   );
 }

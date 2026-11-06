@@ -1,16 +1,24 @@
 
 import { useEffect, useState } from "react";
-import { Trash2, CalendarDays, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  CalendarDays,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 import {
+  getSpeedTestsPage,
   deleteSpeedTest,
   deleteSpeedTestsBefore,
   deleteAllSpeedTests,
   type SpeedTestResult,
+  type SpeedTestsPagination,
 } from "../services/api";
 
 interface Props {
-  results: SpeedTestResult[];
+  refreshKey: number;
   onDeleted: () => Promise<void>;
 }
 
@@ -20,45 +28,66 @@ type DeleteAction =
   | { type: "all" }
   | null;
 
+const PAGE_SIZE = 10;
+
 export default function HistoryTable({
-  results,
+  refreshKey,
   onDeleted,
 }: Props) {
+  const [results, setResults] = useState<SpeedTestResult[]>([]);
+  const [pagination, setPagination] =
+    useState<SpeedTestsPagination | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
   const [action, setAction] = useState<DeleteAction>(null);
   const [date, setDate] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
-  
-  const PAGE_SIZE = 10;
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Ordenar del más reciente al más antiguo.
-  const ordered = [...results].reverse();
-
-  // Calcular el número de páginas.
-  const totalPages = Math.max(
-    1,
-    Math.ceil(ordered.length / PAGE_SIZE),
-  );
-
-  // Evitar páginas inexistentes después de borrar registros.
-  const safePage = Math.min(currentPage, totalPages);
-
-  // Obtener únicamente los registros de la página actual.
-  const startIndex = (safePage - 1) * PAGE_SIZE;
-
-  const paginatedResults = ordered.slice(
-    startIndex,
-    startIndex + PAGE_SIZE,
-  );
-
-  // Mantener la página dentro del rango válido.
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+    let cancelled = false;
+
+    async function loadPage() {
+      setLoading(true);
+      setLoadError("");
+
+      try {
+        const data = await getSpeedTestsPage(
+          currentPage,
+          PAGE_SIZE,
+        );
+
+        if (cancelled) return;
+
+        setResults(data.results);
+        setPagination(data.pagination);
+
+        if (data.pagination.page !== currentPage) {
+          setCurrentPage(data.pagination.page);
+        }
+      } catch (err) {
+        if (cancelled) return;
+
+        setLoadError(
+          err instanceof Error
+            ? err.message
+            : "No fue posible cargar el historial",
+        );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [currentPage, totalPages]);
+
+    void loadPage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPage, refreshKey, reloadKey]);
 
   async function confirmDelete() {
     if (!action || deleting) return;
@@ -69,14 +98,11 @@ export default function HistoryTable({
     try {
       if (action.type === "single") {
         await deleteSpeedTest(action.id);
-      }
-
-      if (action.type === "before") {
+      } else if (action.type === "before") {
         if (!date) {
           throw new Error("Selecciona una fecha");
         }
 
-        // Inicio del día seleccionado, en hora local.
         const cutoff = new Date(`${date}T00:00:00`);
 
         if (Number.isNaN(cutoff.getTime())) {
@@ -84,13 +110,9 @@ export default function HistoryTable({
         }
 
         await deleteSpeedTestsBefore(cutoff);
-      }
-
-      if (action.type === "all") {
+      } else if (action.type === "all") {
         if (confirmation !== "ELIMINAR") {
-          throw new Error(
-            "Escribe ELIMINAR para confirmar",
-          );
+          throw new Error("Escribe ELIMINAR para confirmar");
         }
 
         await deleteAllSpeedTests();
@@ -100,6 +122,8 @@ export default function HistoryTable({
       setDate("");
       setConfirmation("");
 
+      // Actualizar tabla y gráfica después de eliminar.
+      setReloadKey((value) => value + 1);
       await onDeleted();
     } catch (err) {
       setError(
@@ -119,14 +143,18 @@ export default function HistoryTable({
     setDate("");
   }
 
+  const total = pagination?.total ?? 0;
+  const totalPages = pagination?.totalPages ?? 1;
+  const page = pagination?.page ?? currentPage;
+  const startIndex = (page - 1) * PAGE_SIZE;
+
   return (
     <section className="panel history-panel">
       <div className="history-header">
         <div>
           <h2>Historial de mediciones</h2>
           <p>
-            Consulta y administra los resultados
-            almacenados.
+            Consulta y administra los resultados almacenados.
           </p>
         </div>
 
@@ -134,7 +162,7 @@ export default function HistoryTable({
           <button
             className="secondary-action"
             onClick={() => openAction({ type: "before" })}
-            disabled={results.length === 0}
+            disabled={loading || total === 0}
           >
             <CalendarDays size={16} />
             Limpiar por fecha
@@ -143,7 +171,7 @@ export default function HistoryTable({
           <button
             className="history-danger-button"
             onClick={() => openAction({ type: "all" })}
-            disabled={results.length === 0}
+            disabled={loading || total === 0}
           >
             <Trash2 size={16} />
             Vaciar historial
@@ -151,7 +179,21 @@ export default function HistoryTable({
         </div>
       </div>
 
-      {results.length === 0 ? (
+      {loading ? (
+        <div className="history-empty">
+          Cargando mediciones...
+        </div>
+      ) : loadError ? (
+        <div className="history-empty">
+          <p>{loadError}</p>
+          <button
+            className="secondary-action"
+            onClick={() => setReloadKey((value) => value + 1)}
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : total === 0 ? (
         <div className="history-empty">
           Todavía no hay mediciones almacenadas.
         </div>
@@ -171,12 +213,12 @@ export default function HistoryTable({
             </thead>
 
             <tbody>
-              {paginatedResults.map((item) => (
+              {results.map((item) => (
                 <tr key={item.id ?? item.timestamp}>
                   <td>
-                    {new Date(
-                      item.timestamp,
-                    ).toLocaleString("es-MX")}
+                    {new Date(item.timestamp).toLocaleString(
+                      "es-MX",
+                    )}
                   </td>
 
                   <td>
@@ -206,7 +248,7 @@ export default function HistoryTable({
                       className="icon-action danger"
                       title="Eliminar medición"
                       aria-label="Eliminar medición"
-                      disabled={item.id == null}
+                      disabled={item.id == null || deleting}
                       onClick={() => {
                         if (item.id != null) {
                           openAction({
@@ -225,22 +267,28 @@ export default function HistoryTable({
           </table>
         </div>
       )}
-      
-      {ordered.length > 0 && (
+
+      {pagination && total > 0 && !loadError && (
         <div className="history-pagination">
           <span className="history-pagination-info">
             Mostrando {startIndex + 1}–
-            {Math.min(startIndex + PAGE_SIZE, ordered.length)}
-            {" "}de {ordered.length} registros
+            {Math.min(startIndex + results.length, total)}
+            {" "}de {total} registros
           </span>
 
           <div className="history-pagination-controls">
             <button
               className="history-page-button"
               onClick={() =>
-                setCurrentPage((page) => Math.max(1, page - 1))
+                setCurrentPage((value) =>
+                  Math.max(1, value - 1),
+                )
               }
-              disabled={safePage === 1}
+              disabled={
+                loading ||
+                deleting ||
+                !pagination.hasPreviousPage
+              }
               aria-label="Página anterior"
               title="Página anterior"
             >
@@ -248,17 +296,21 @@ export default function HistoryTable({
             </button>
 
             <span className="history-page-indicator">
-              Página {safePage} de {totalPages}
+              Página {page} de {totalPages}
             </span>
 
             <button
               className="history-page-button"
               onClick={() =>
-                setCurrentPage((page) =>
-                  Math.min(totalPages, page + 1),
+                setCurrentPage((value) =>
+                  Math.min(totalPages, value + 1),
                 )
               }
-              disabled={safePage === totalPages}
+              disabled={
+                loading ||
+                deleting ||
+                !pagination.hasNextPage
+              }
               aria-label="Página siguiente"
               title="Página siguiente"
             >
@@ -267,7 +319,6 @@ export default function HistoryTable({
           </div>
         </div>
       )}
-
 
       {action && (
         <div className="history-modal-backdrop">
@@ -353,9 +404,7 @@ export default function HistoryTable({
                 onClick={() => void confirmDelete()}
               >
                 <Trash2 size={16} />
-                {deleting
-                  ? "Eliminando..."
-                  : "Eliminar"}
+                {deleting ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
           </div>

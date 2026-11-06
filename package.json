@@ -11,6 +11,8 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=@netpulse/api",
     "build:api": "npm run build --workspace=@netpulse/api",
+    "dev:web": "npm run dev --workspace=./apps/web",
+    "build:web": "npm run build --workspace=./apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "engines": {

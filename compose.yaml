@@ -1,6 +1,12 @@
+
 name: netpulse
 
 services:
+
+  # ==========================================
+  # API - Fastify + LibreSpeed + SQLite
+  # ==========================================
+
   api:
     build:
       context: .
@@ -14,17 +20,44 @@ services:
       PORT: "3100"
       TZ: America/Mexico_City
       SQLITE_PATH: /app/data/netpulse.db
+
     volumes:
       - ./data:/app/data
 
-    ports:
-      - "192.168.2.20:3100:3100"
-      - "100.102.57.111:3100:3100"
+    expose:
+      - "3100"
 
     restart: unless-stopped
 
     networks:
       - internal
+
+  # ==========================================
+  # WEB - React + Nginx
+  # ==========================================
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+
+    image: netpulse-web:local
+    container_name: netpulse-web
+
+    depends_on:
+      - api
+
+    ports:
+      - "8080:80"
+
+    restart: unless-stopped
+
+    networks:
+      - internal
+
+# ==========================================
+# Red interna Docker
+# ==========================================
 
 networks:
   internal:

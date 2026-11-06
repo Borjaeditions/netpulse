@@ -1,15 +1,20 @@
-
 import { useEffect, useState } from "react";
+
 import Layout, { type Page } from "./components/Layout";
 import MonitorPage from "./pages/MonitorPage";
+import SchedulerPage from "./pages/SchedulerPage";
+import TestPage from "./pages/TestPage";
+
 import { useTheme } from "./hooks/useTheme";
 import { getHealth } from "./services/api";
+
 import "./App.css";
 
 export default function App() {
   const [page, setPage] = useState<Page>("monitor");
   const [connected, setConnected] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -18,9 +23,14 @@ export default function App() {
     async function checkHealth() {
       try {
         await getHealth();
-        if (active) setConnected(true);
+
+        if (active) {
+          setConnected(true);
+        }
       } catch {
-        if (active) setConnected(false);
+        if (active) {
+          setConnected(false);
+        }
       }
     }
 
@@ -40,7 +50,9 @@ export default function App() {
     });
 
     events.addEventListener("speedtest.completed", () => {
-      if (active) setRefreshKey((key) => key + 1);
+      if (active) {
+        setRefreshKey((key) => key + 1);
+      }
     });
 
     events.addEventListener("error", () => {
@@ -49,7 +61,7 @@ export default function App() {
 
     return () => {
       active = false;
-      clearInterval(healthTimer);
+      window.clearInterval(healthTimer);
       events.close();
     };
   }, []);
@@ -67,39 +79,11 @@ export default function App() {
       )}
 
       {page === "scheduler" && (
-        <section className="page">
-          <div className="page-header">
-            <div>
-              <h1>Programador</h1>
-              <p>Alarmas e intervalos de medición</p>
-            </div>
-          </div>
-          <div className="panel placeholder-panel">
-            <h2>Programaciones</h2>
-            <p>
-              Aquí integraremos las alarmas y los intervalos
-              almacenados en SQLite.
-            </p>
-          </div>
-        </section>
+        <SchedulerPage />
       )}
 
       {page === "test" && (
-        <section className="page">
-          <div className="page-header">
-            <div>
-              <h1>Prueba de velocidad</h1>
-              <p>Mediciones manuales con LibreSpeed</p>
-            </div>
-          </div>
-          <div className="panel placeholder-panel">
-            <h2>Prueba manual</h2>
-            <p>
-              Aquí incorporaremos el botón de ejecución y los
-              resultados en tiempo real.
-            </p>
-          </div>
-        </section>
+        <TestPage />
       )}
     </Layout>
   );

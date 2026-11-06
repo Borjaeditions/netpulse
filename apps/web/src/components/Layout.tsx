@@ -1,12 +1,11 @@
+
 import {
   Activity,
   CalendarClock,
   Gauge,
-  Monitor,
-  Moon,
-  Sun,
   Wifi,
 } from "lucide-react";
+
 import type { ReactNode } from "react";
 import type { Theme } from "../hooks/useTheme";
 import ThemeSelector from "./ThemeSelector";

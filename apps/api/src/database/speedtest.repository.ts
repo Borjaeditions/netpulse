@@ -54,3 +54,28 @@ export function getLatestSpeedTest() {
     LIMIT 1
   `).get() ?? null;
 }
+export function deleteSpeedTest(id: number): boolean {
+  const result = db
+    .prepare("DELETE FROM speed_tests WHERE id = ?")
+    .run(id);
+
+  return result.changes > 0;
+}
+
+export function deleteSpeedTestsBefore(before: string): number {
+  const result = db
+    .prepare(
+      "DELETE FROM speed_tests WHERE julianday(timestamp) < julianday(?)",
+    )
+    .run(before);
+
+  return Number(result.changes);
+}
+
+export function deleteAllSpeedTests(): number {
+  const result = db
+    .prepare("DELETE FROM speed_tests")
+    .run();
+
+  return Number(result.changes);
+}

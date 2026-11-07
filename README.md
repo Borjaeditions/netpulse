@@ -1,5 +1,6 @@
 
 # NetPulse
+**Idioma:** **Español** | [English](README.en.md)
 
 **NetPulse** es una aplicación de código abierto para monitorear la velocidad de conexión a Internet desde un panel web.
 
@@ -48,7 +49,7 @@ Está diseñado para ejecutarse en servidores Linux, equipos domésticos, mini P
 ### Visualización
 
 - Panel web desarrollado con React y TypeScript.
-- Gráficas interactivas con Recharts.
+- Gráficas intera ctivas con Recharts.
 - Filtros de 24 horas, 7 días, 30 días y todo el periodo disponible.
 - Actualización de resultados mediante Server-Sent Events (SSE).
 - Diseño adaptable a diferentes tamaños de pantalla.
@@ -383,7 +384,6 @@ Para instalaciones compartidas o públicas será necesario implementar autentica
 
 ### Mejoras futuras
 
-- [ ] Autenticación de usuarios.
 - [ ] Exportación del historial a CSV.
 - [ ] Alertas por degradación de velocidad o latencia.
 

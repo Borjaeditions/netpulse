@@ -28,8 +28,6 @@ Está diseñado para ejecutarse en servidores Linux, equipos domésticos, mini P
 
 ![Prueba manual de velocidad](docs/images/test.png)
 
-> Las imágenes se incorporarán al repositorio en `docs/images/`.
-
 ## Características
 
 ### Mediciones de velocidad
